@@ -19,7 +19,7 @@ use strict;
 use vars qw($VERSION);
 use integer;
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 ## Require version 5.005, because of pseudo-hashes
 require 5.005;
@@ -96,7 +96,7 @@ sub load {
     ## Is there an 'orderby' parameter?
     if (defined($args{'orderby'})) {
         $args{'orderby'} =~ /^([+-])?(.*)$/;
-        if (! $self->_check_columns([$2])) {
+        if (($args{'orderby'} !~ /\./) && (! $self->_check_columns([$2]))) {
             $self->_debug(2, "Unknown column specified in orderby parameter.");
             return undef;
         }
@@ -177,11 +177,15 @@ sub load {
             $orderby =~ s/^\-//;
         }
         $sql .= " ORDER BY ";
-        if ($self->_cprop($orderby, 'foreign')) {
-            $sql .= $self->_cprop($orderby, 'foreign')->{'table'};
-            $sql .= "." . $orderby;
+        if ($orderby =~ /\./) {
+            $sql .= $orderby;
         } else {
-            $sql .= $self->{'table'} . "." . $orderby;
+            if ($self->_cprop($orderby, 'foreign')) {
+                $sql .= $self->_cprop($orderby, 'foreign')->{'table'};
+                $sql .= "." . $orderby;
+            } else {
+                $sql .= $self->{'table'} . "." . $orderby;
+            }
         }
         $sql .= $direction;
     }
@@ -236,7 +240,7 @@ sub load {
             }
         }
         ## Store the returned data
-        if (defined(@columns) && ($#columns >= 0)) {
+        if (@columns && ($#columns >= 0)) {
             foreach $column (@columns) {
                 $self->{'values'}->[$counter]->{$column} = $row->{uc($column)};
             }
@@ -253,7 +257,7 @@ sub load {
     ## If this object doesn't actually contain any data, we should return
     ## undef rather than an empty object.
     if ($counter == -1) {
-        $self->_debug(2, "No data was stored - returning undef!");
+        $self->_debug(1, "No data was stored - returning undef!");
         return(undef);
     }
 
@@ -347,6 +351,7 @@ sub refresh {
     my($sql) = "SELECT ";
     $sql    .= $self->_columns(\@{$args{'columns'}});
     $sql    .= $self->_from(\@{$args{'columns'}});
+    $sql    .= " WHERE ";
     $sql    .= $self->_unique_where($args{'row'}, \@{$args{'columns'}});
 
     ## That's some fancy SQL you've got there!
@@ -370,7 +375,8 @@ sub refresh {
         if (defined(@{$args{'columns'}}) && (scalar(@{$args{'columns'}}) > 0)) {
             foreach $column (@{$args{'columns'}}) {
                 $self->{'values'}->[$args{'row'}]->{$column}  = $row->{$column};
-                $self->{'changed'}->[$args{'row'}]->{$column} = 0;
+                @{$self->{'changed'}->[$args{'row'}]} = grep { ! /^$column$/ } @{$self->{'changed'}->[$args{'row'}]};
+                # $self->{'changed'}->[$args{'row'}]->{$column} = 0;
             }
         }
     } else {
@@ -1243,7 +1249,7 @@ sub _from {
             if ($extra = $self->_cprop($column, 'special')) {
                 if (defined($extra->{'join'})) {
                     if ($extra->{'join'} !~ /join/i) {
-                        $sql .= " JOIN ";
+                        $sql .= " , ";
                     }
                     $sql .= " " . $extra->{'join'};
                 }

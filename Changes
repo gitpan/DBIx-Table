@@ -1,5 +1,7 @@
 Revision history for Perl extension DBIx::Table.
 
+0.04	- bugfix release
+	- fixed a number of bugs
         - fixed test.pl up a bit
 0.03	- bugfix release
 	- workarounds for inherent incompatibility of fetchrow_hashref()
