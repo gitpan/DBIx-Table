@@ -1,20 +1,108 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
 ######################### We start with some black magic to print on failure.
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
+use strict;
+use vars qw($loaded);
 
-BEGIN { $| = 1; print "1..1\n"; }
-END {print "not ok 1\n" unless $loaded;}
+BEGIN { $^W = 1; $| = 1; print "1..1\n"; }
+END   {print "not ok 1\n" unless $loaded;}
 use DBIx::Table;
 $loaded = 1;
 print "ok 1\n";
 
 ######################### End of black magic.
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
 
+
+### package FakeST ############################################################
+package FakeST;
+
+sub new {
+    my($class) = shift;
+    my($self) = {};
+    $self->{'returned'} = 0;
+    bless($self, $class);
+    return $self;
+}
+ 
+sub execute {
+    my($self) = shift;
+    return 1;
+}
+ 
+sub finish {
+    return 1;
+}
+
+sub fetchrow_hashref {
+    my($self) = shift;
+    if ($self->{'returned'}) {
+        return undef;
+    } else {
+        $self->{'returned'} = 1;
+        return { 'id' => 1 };
+    }
+}
+### end package FakeST ########################################################
+
+
+
+### package FakeDBI ###########################################################
+package FakeDBI;
+
+sub new {
+    my($class) = shift;
+    my($self) = {};
+    bless($self, $class);
+    return $self;
+}
+
+sub prepare {
+    my($st) = new FakeST;
+    return $st;
+}
+
+sub quote {
+}
+
+sub do {
+}
+### end package FakeDBI #######################################################
+
+
+
+### package TestTable #########################################################
+package TestTable;
+
+@TestTable::ISA = qw(DBIx::Table);
+
+sub describe {
+    my($self) = shift || return(undef);
+
+    $self->{'table'}       = 'test';
+    $self->{'unique_keys'} = [ ['id'] ];
+    $self->{'columns'}     = { 'id'         => { 'immutable'     => 1,
+                                                 'autoincrement' => 1,
+                                                 'default'     => 'NULL' }
+                             };
+
+    $self->debug_level( level => 0 );
+
+    return 1;
+}
+### end package TestTable #####################################################
+
+
+
+### begin actual test code ####################################################
+
+## create a fake database handle for passing to table objects.
+#my($db)    = new FakeDBI;
+
+#my($table) = load TestTable( db => $db );
+#if (! defined($table)) {
+    #print("not ok 2\n");
+#} else {
+    #print("ok 2\n");
+#}
+
+### end actual test code ######################################################

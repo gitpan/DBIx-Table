@@ -19,7 +19,7 @@ use strict;
 use vars qw($VERSION);
 use integer;
 
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 ## Require version 5.005, because of pseudo-hashes
 require 5.005;
@@ -208,7 +208,7 @@ sub load {
     my($row);
     my($counter) = -1;
     my($rownum) = -1;
-    while ($row = $st->fetchrow_hashref()) {
+    while (defined($row = $st->fetchrow_hashref())) {
         $rownum++;
         ## If index and count values are provided, we might not load all of
         ## the data (all will be fetchrow()d, though...)
@@ -228,14 +228,21 @@ sub load {
             $self->{'values'}->[$counter]->{$column} = $args{'where'}->{$column};
         }
 
+        ## To get around the fact that fetchrow_hashref() isn't portable
+        ## because of case issues, we smash case upwards here.
+        foreach (keys (%{$row})) {
+            if ($_ ne uc($_)) {
+                $row->{uc($_)} = $row->{$_};
+            }
+        }
         ## Store the returned data
         if (defined(@columns) && ($#columns >= 0)) {
             foreach $column (@columns) {
-                $self->{'values'}->[$counter]->{$column} = $row->{$column};
+                $self->{'values'}->[$counter]->{$column} = $row->{uc($column)};
             }
         } else {
             foreach $column (keys(%{$self->{'columns'}})) {
-                $self->{'values'}->[$counter]->{$column} = $row->{$column};
+                $self->{'values'}->[$counter]->{$column} = $row->{uc($column)};
             }
         }
     }
@@ -881,7 +888,7 @@ sub count {
 
     my(%args) = @_;
 
-    my($sql) = "SELECT COUNT(*) AS count FROM " . $self->{'table'};
+    my($sql) = "SELECT COUNT(*) FROM " . $self->{'table'};
     $sql    .= $self->_where($args{'where'}, []);
 
     ## That's some fancy SQL you've got there!
@@ -899,7 +906,7 @@ sub count {
         return(undef);
     }
 
-    return($st->fetchrow_hashref()->{'count'});
+    return($st->fetchrow_arrayref()->[0]);
 }
 ### end count #################################################################
 
@@ -922,8 +929,10 @@ sub debug_level {
     }
 
     my(%args)  = @_;
-    my($level) = $args{'level'} || return($self->{'debug_level'});
-    return($self->{'debug_level'} = $level);
+    if (defined($args{'level'})) {
+        $self->{'debug_level'} = $args{'level'};
+    }
+    return($self->{'debug_level'});
 }
 ### end debug_level ###########################################################
 
@@ -1367,7 +1376,6 @@ in the object itself:
 
 =over 3
 
-    my($message)  = "@_";
 =item B<$self-E<gt>{'table'}>
 
 This should contain a string; the name of the table from which data is going

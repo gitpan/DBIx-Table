@@ -1,5 +1,10 @@
 Revision history for Perl extension DBIx::Table.
 
+        - fixed test.pl up a bit
+0.03	- bugfix release
+	- workarounds for inherent incompatibility of fetchrow_hashref()
+	- fixed some minor bugs in the debugging code
+	- tiny documentation fixes
 0.02	- first public release
 	- minor bugfixes related to debugging code
 	- more documentation updates
@@ -15,4 +20,3 @@ Revision history for Perl extension DBIx::Table.
 	- created _cprop "private" sub for retrieving column properties.
 	- major documentation updates.
 0.01	- original version; created by h2xs 1.1.1.1
-

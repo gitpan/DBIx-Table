@@ -6,3 +6,8 @@ Stuff on my TODO list:
   was developed for mod_perl applications not running with warnings enabled...)
 
 - Add function prototypes?
+
+- Add can() checking for $self->describe() and $db->XXX(), so that we can
+  generate better errors.
+
+- Test suite.
