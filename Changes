@@ -1,0 +1,18 @@
+Revision history for Perl extension DBIx::Table.
+
+0.02	- first public release
+	- minor bugfixes related to debugging code
+	- more documentation updates
+	- created refresh public method for updating or adding data in an
+	  already loaded object.
+	- broke SQL-building functions into separate components.
+	- cleaned up load constructor substantially.
+	- created debug_level public method for setting the debug level.
+	- fixed the primary_key problem - now use unique_keys, a list of lists.
+	- fixed bugs with the in_database flag handling.
+	- piles of debugging code added.
+	- basic object is now a pseudo-hash.
+	- created _cprop "private" sub for retrieving column properties.
+	- major documentation updates.
+0.01	- original version; created by h2xs 1.1.1.1
+

@@ -1,0 +1,8 @@
+Stuff on my TODO list:
+
+- where clauses should be more powerful than just 'foo = bar' and 'foo IS NULL'.
+
+- Make sure it's 'perl -w' compliant.  Currently doesn't seem to be 100% (it
+  was developed for mod_perl applications not running with warnings enabled...)
+
+- Add function prototypes?

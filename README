@@ -1,0 +1,27 @@
+DBIx::Table - Class used to represent DBI database tables.
+
+Copyright (c) 1999 J. David Lowe.  All rights reserved.  This program is free
+software; you can redistribute it and/or modify it under the same terms as
+Perl itself. 
+
+
+Prerequisites
+
+This module requires Perl 5.005 or later, because it uses pseudohashes.
+
+You're not going to find this useful without a relational database of some sort,
+the DBI module, and a DBD driver for your database.  However, none of these
+are technically required ;)
+
+At this stage, this module is known to have some mysql-specific behavior.  So
+if you use it with another database, it may not work.
+
+
+Building
+
+  # perl Makefile.PL
+  # make
+
+Installing
+
+  # make install
